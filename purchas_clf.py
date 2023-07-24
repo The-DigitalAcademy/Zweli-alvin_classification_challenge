@@ -5,6 +5,7 @@ st.set_page_config(layout='wide',page_title='Address Book',page_icon='📚')
 
 st.title('Uber pickups in NYC')
 
+
 st.write('Select Model')
 selected_option = st.selectbox("Select an option", ["Random Forest Cl"])
 if selected_option == "Random Forest Cl":
