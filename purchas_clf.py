@@ -134,6 +134,8 @@ if selected_option == "XGBClassifier":
                     # Get the predicted result for the test Data
                 predictions = model.predict(test.drop("Transaction_ID", axis=1))
                 test["predictions"] = predictions
+                
+                test['predictions'] = test['predictions'].replace({0: 'Bills & Fees', 1: 'Data & WiFi', 2: 'Education', 3: 'Emergency fund', 4: 'Family & Friends', 5: 'Going out', 6: 'Groceries', 7: 'Health', 8: 'Loan Repayment', 9: 'Miscellaneous', 10: 'Rent / Mortgage', 11: 'Shopping', 12: 'Transport & Fuel'})
                 sub = test[["Transaction_ID",  "predictions"]]
                 sub = pd.get_dummies(sub, columns=['predictions'])
                 # # remove the p
