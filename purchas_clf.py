@@ -81,3 +81,62 @@ if selected_option == "Random Forest":
                 sub.columns = sub.columns.str.replace('predictions_','')
                 st.write('Result')
                 st.write(test[["Transaction_ID",  "predictions"]])
+
+
+
+
+if selected_option == "XGBClassifier":
+            model_load_path = "xbu.pkl"
+            with open(model_load_path, 'rb') as file:
+                model = pickle.load(file)
+
+            if data is not None:
+                    test = pd.read_csv(data)
+                    train["USER_GENDER"] = train["USER_GENDER"].apply(lambda x: "Male" if pd.isna(x) else x)
+                    test["USER_GENDER"] = test["USER_GENDER"].apply(lambda x: "Male" if pd.isna(x) else x)
+                    # Impute the missing age entries with the median of that column
+                    train_median_value = np.median(train['USER_AGE'].dropna())
+                    train['USER_AGE'] = train['USER_AGE'].fillna(train_median_value)
+
+                    test_median_value = np.median(test['USER_AGE'].dropna())
+                    test['USER_AGE'] = test['USER_AGE'].fillna(test_median_value)
+
+                    train["train"] = 1
+                    test["train"] = 0
+
+                    all_data = pd.concat([train, test])
+
+                    all_data = pd.get_dummies(all_data, prefix_sep="_", columns=['MERCHANT_NAME'])
+
+                    train = all_data[all_data["train"] == 1]
+                    test = all_data[all_data["train"] == 0]
+
+                    train = train.drop(['MERCHANT_CATEGORIZED_AT','PURCHASED_AT','USER_ID', 'Transaction_ID', "train"], axis=1)
+                    test = test.drop(['MERCHANT_CATEGORIZED_AT','PURCHASED_AT','USER_ID', "train", "MERCHANT_CATEGORIZED_AS"], axis=1)
+
+                    train['USER_GENDER'] = train['USER_GENDER'].apply(create_binary_cols)
+                    test['USER_GENDER'] = test['USER_GENDER'].apply(create_binary_cols)
+
+                    # Is_purchase_paid_via_mpesa_send_money column convert:
+                    train['IS_PURCHASE_PAID_VIA_MPESA_SEND_MONEY'] = train['IS_PURCHASE_PAID_VIA_MPESA_SEND_MONEY'].apply(create_binary_cols)
+                    test['IS_PURCHASE_PAID_VIA_MPESA_SEND_MONEY'] = test['IS_PURCHASE_PAID_VIA_MPESA_SEND_MONEY'].apply(create_binary_cols)
+
+                    labels_train = train['MERCHANT_CATEGORIZED_AS'].astype('category').cat.categories.tolist()
+                    replace_map_train = {'MERCHANT_CATEGORIZED_AS' : {k: v for k,v in zip(labels_train,list(range(0,len(labels_train)+1)))}}
+                    print("Train data: ", replace_map_train)
+
+                    train_data_corr = train.copy()
+                    train_data_corr.replace(replace_map_train, inplace=True)
+
+                    X = train.drop(["MERCHANT_CATEGORIZED_AS"], axis=1)
+                    y = train["MERCHANT_CATEGORIZED_AS"]
+            if st.button('Predict Category'):
+                    # Get the predicted result for the test Data
+                predictions = model.predict(test.drop("Transaction_ID", axis=1))
+                test["predictions"] = predictions
+                sub = test[["Transaction_ID",  "predictions"]]
+                sub = pd.get_dummies(sub, columns=['predictions'])
+                # # remove the p
+                sub.columns = sub.columns.str.replace('predictions_','')
+                st.write('Result')
+                st.write(test[["Transaction_ID",  "predictions"]])
