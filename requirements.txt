@@ -5,3 +5,4 @@ streamlit
 pandas
 joblib
 scikit-learn
+sklearn
